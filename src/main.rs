@@ -38,7 +38,9 @@ impl Kind {
             }
             Kind::Fiat(code) => format!("{} ({code})", currency::name_of(code)),
 
-            Kind::Crypto(symbol) => format!("{} ({})", crypto::name_of(symbol), symbol.to_uppercase()),
+            Kind::Crypto(symbol) => {
+                format!("{} ({})", crypto::name_of(symbol), symbol.to_uppercase())
+            }
         }
     }
 
@@ -87,9 +89,12 @@ impl Market {
                     self.rates = Some(rates);
                 }
                 let rates = self.rates.as_ref().expect("rates loaded above");
-                rates
-                    .value_in_usd(code)
-                    .ok_or_else(|| format!("{} ({code}) missing from rate data", currency::name_of(code)))
+                rates.value_in_usd(code).ok_or_else(|| {
+                    format!(
+                        "{} ({code}) missing from rate data",
+                        currency::name_of(code)
+                    )
+                })
             }
             Kind::Crypto(symbol) => {
                 if self.prices.is_none() {
@@ -101,9 +106,12 @@ impl Market {
                     self.prices = Some(prices);
                 }
                 let prices = self.prices.as_ref().expect("prices loaded above");
-                prices
-                    .value_in_usd(symbol)
-                    .ok_or_else(|| format!("{} has no price in the market list", crypto::name_of(symbol)))
+                prices.value_in_usd(symbol).ok_or_else(|| {
+                    format!(
+                        "{} has no price in the market list",
+                        crypto::name_of(symbol)
+                    )
+                })
             }
             Kind::Unit(_) => Err("measurements have no exchange rate".to_string()),
         }
@@ -157,12 +165,21 @@ fn convert_units(amount: f64, from: units::UnitRef, target: Option<Kind>) -> Out
         Some(Kind::Unit(to)) => {
             if to.category != from.category {
                 return Output::single(Item::error(
-                    format!("Cannot convert {} to {}", from.category_name(), to.category_name()),
+                    format!(
+                        "Cannot convert {} to {}",
+                        from.category_name(),
+                        to.category_name()
+                    ),
                     "Units must share a category".to_string(),
                 ));
             }
             match units::convert(amount, from, to) {
-                Some(value) => Output::single(result_item(value, &to.display(), &kind_of(from), &kind_of(to))),
+                Some(value) => Output::single(result_item(
+                    value,
+                    &to.display(),
+                    &kind_of(from),
+                    &kind_of(to),
+                )),
                 None => Output::single(Item::error(
                     format!("Cannot convert {} to {}", from.symbol(), to.symbol()),
                     "Units must share a category".to_string(),
@@ -179,7 +196,12 @@ fn convert_units(amount: f64, from: units::UnitRef, target: Option<Kind>) -> Out
                 .filter(|candidate| *candidate != from)
                 .filter_map(|candidate| {
                     let value = units::convert(amount, from, candidate)?;
-                    Some(result_item(value, &candidate.display(), &kind_of(from), &kind_of(candidate)))
+                    Some(result_item(
+                        value,
+                        &candidate.display(),
+                        &kind_of(from),
+                        &kind_of(candidate),
+                    ))
                 })
                 .collect();
             match items.is_empty() {
@@ -230,7 +252,10 @@ fn convert_money(amount: f64, from: Kind, target: Option<Kind>) -> Output {
     if items.is_empty() {
         return match failures.into_iter().next() {
             Some(item) => Output::single(item),
-            None => Output::single(Item::error("Conversion unavailable".to_string(), HINT.to_string())),
+            None => Output::single(Item::error(
+                "Conversion unavailable".to_string(),
+                HINT.to_string(),
+            )),
         };
     }
 

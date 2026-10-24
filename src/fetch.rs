@@ -49,7 +49,10 @@ pub fn get(url: &str, file: &str, ttl: Duration) -> Result<Cached, String> {
     if let Some(cache_age) = age(&path) {
         if cache_age < ttl {
             if let Some(body) = cached.clone() {
-                return Ok(Cached { body, stale_note: None });
+                return Ok(Cached {
+                    body,
+                    stale_note: None,
+                });
             }
         }
     }
@@ -62,7 +65,10 @@ pub fn get(url: &str, file: &str, ttl: Duration) -> Result<Cached, String> {
                     stale_note: Some(format!("cache write failed: {err}")),
                 });
             }
-            Ok(Cached { body, stale_note: None })
+            Ok(Cached {
+                body,
+                stale_note: None,
+            })
         }
         Err(err) => match cached {
             Some(body) => {
@@ -110,8 +116,12 @@ mod tests {
 
         // Port 9 is the discard port; nothing listens, so the connection is refused.
         // A zero TTL forces the refresh attempt.
-        let got = get("http://127.0.0.1:9/rates", "rates.json", Duration::from_secs(0))
-            .expect("stale fallback should succeed");
+        let got = get(
+            "http://127.0.0.1:9/rates",
+            "rates.json",
+            Duration::from_secs(0),
+        )
+        .expect("stale fallback should succeed");
 
         std::env::remove_var("alfred_workflow_cache");
         fs::remove_dir_all(&dir).ok();

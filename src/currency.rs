@@ -33,7 +33,10 @@ pub struct Rates {
 
 impl Rates {
     pub fn value_in_usd(&self, code: &str) -> Option<f64> {
-        self.per_usd.get(code).map(|rate| 1.0 / rate).filter(|v| v.is_finite())
+        self.per_usd
+            .get(code)
+            .map(|rate| 1.0 / rate)
+            .filter(|v| v.is_finite())
     }
 
     pub fn parse(body: &str) -> Result<(HashMap<String, f64>, Option<String>), String> {
@@ -58,9 +61,13 @@ impl Rates {
     }
 
     pub fn load() -> Result<Rates, String> {
-        let cached = crate::fetch::get(RATES_URL, "rates_usd.json", Duration::from_secs(12 * 3600))?;
+        let cached =
+            crate::fetch::get(RATES_URL, "rates_usd.json", Duration::from_secs(12 * 3600))?;
         let (per_usd, _) = Rates::parse(&cached.body)?;
-        Ok(Rates { per_usd, note: cached.stale_note })
+        Ok(Rates {
+            per_usd,
+            note: cached.stale_note,
+        })
     }
 }
 
@@ -77,7 +84,10 @@ pub fn resolve(token: &str) -> Option<&'static str> {
     }
     let lowered = token.to_lowercase();
     if lowered.len() == 3 {
-        if let Some((code, _)) = CURRENCY_NAMES.iter().find(|(code, _)| code.eq_ignore_ascii_case(&lowered)) {
+        if let Some((code, _)) = CURRENCY_NAMES
+            .iter()
+            .find(|(code, _)| code.eq_ignore_ascii_case(&lowered))
+        {
             return Some(code);
         }
     }
@@ -89,7 +99,8 @@ pub fn resolve(token: &str) -> Option<&'static str> {
             return Some(code);
         }
         // Partial names must be unambiguous: "canadian dollar" beats "dollar".
-        if name.starts_with(&format!("{lowered} ")) || name.split_whitespace().any(|w| w == lowered) {
+        if name.starts_with(&format!("{lowered} ")) || name.split_whitespace().any(|w| w == lowered)
+        {
             matches.push(code);
         }
     }
@@ -126,7 +137,10 @@ mod tests {
             r#"{"result":"success","rates":{"USD":1,"EUR":0.8,"ILS":3.7,"GBP":0.75}}"#,
         )
         .unwrap();
-        Rates { per_usd, note: None }
+        Rates {
+            per_usd,
+            note: None,
+        }
     }
 
     #[test]

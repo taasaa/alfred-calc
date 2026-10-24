@@ -53,7 +53,11 @@ pub fn parse(input: &str) -> Option<Query> {
         });
     }
 
-    Some(Query { amount, from: rest.to_string(), target: None })
+    Some(Query {
+        amount,
+        from: rest.to_string(),
+        target: None,
+    })
 }
 
 fn is_connector(word: &str) -> bool {

@@ -26,16 +26,31 @@ impl Output {
 impl Item {
     /// A conversion the user can copy or paste.
     pub fn result(title: String, subtitle: String, arg: String) -> Item {
-        Item { title, subtitle: Some(subtitle), arg: Some(arg), valid: true }
+        Item {
+            title,
+            subtitle: Some(subtitle),
+            arg: Some(arg),
+            valid: true,
+        }
     }
 
     /// Informational row: shows guidance, cannot be actioned.
     pub fn info(title: String, subtitle: String) -> Item {
-        Item { title, subtitle: Some(subtitle), arg: None, valid: false }
+        Item {
+            title,
+            subtitle: Some(subtitle),
+            arg: None,
+            valid: false,
+        }
     }
 
     /// A real failure: token unknown, categories mismatched, data unavailable.
     pub fn error(title: String, subtitle: String) -> Item {
-        Item { title, subtitle: Some(subtitle), arg: None, valid: false }
+        Item {
+            title,
+            subtitle: Some(subtitle),
+            arg: None,
+            valid: false,
+        }
     }
 }

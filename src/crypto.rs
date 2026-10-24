@@ -69,7 +69,9 @@ impl Prices {
     pub fn parse(body: &str) -> Result<HashMap<String, f64>, String> {
         let json: serde_json::Value =
             serde_json::from_str(body).map_err(|err| format!("unreadable price data: {err}"))?;
-        let list = json.as_array().ok_or_else(|| "price data is not a list".to_string())?;
+        let list = json
+            .as_array()
+            .ok_or_else(|| "price data is not a list".to_string())?;
         let mut map = HashMap::with_capacity(list.len());
         for entry in list {
             let symbol = entry.get("symbol").and_then(|v| v.as_str());
@@ -87,9 +89,13 @@ impl Prices {
     }
 
     pub fn load() -> Result<Prices, String> {
-        let cached = crate::fetch::get(PRICES_URL, "crypto_usd.json", Duration::from_secs(15 * 60))?;
+        let cached =
+            crate::fetch::get(PRICES_URL, "crypto_usd.json", Duration::from_secs(15 * 60))?;
         let per_coin = Prices::parse(&cached.body)?;
-        Ok(Prices { per_coin, note: cached.stale_note })
+        Ok(Prices {
+            per_coin,
+            note: cached.stale_note,
+        })
     }
 }
 
