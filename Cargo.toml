@@ -3,6 +3,12 @@ name = "alfred-calc"
 version = "0.1.0"
 edition = "2021"
 description = "Natural-language currency, crypto and unit conversion for Alfred"
+authors = ["Michael Mazyar <taasaa@gmail.com>"]
+license = "MIT"
+repository = "https://github.com/taasaa/alfred-calc"
+readme = "README.md"
+keywords = ["alfred", "calculator", "currency", "units", "converter"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }

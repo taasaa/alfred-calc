@@ -1,70 +1,115 @@
 # alfred-calc
 
-Natural-language conversion for Alfred: currencies, crypto, and units. Rust, single
-binary, no runtime.
+Converts currencies, crypto and units from natural language. A single Rust binary
+answers queries like `100 eur to usd`, `2 btc to usd` and `5 km in m` in about 3 ms,
+with no runtime and no API keys. It is built to be driven by an Alfred Script Filter,
+and it also works on its own from a shell.
 
-Replaces `alfred-calculate-anything` (PHP, then TypeScript/Bun). Scope is deliberately
-narrow: **currency, crypto, units and measurements**. No colour conversion, no VAT, no
-px/em/rem, no time arithmetic.
+Verified on macOS 27.0.1 with Alfred 5.8.1. The binary is universal, so it runs on
+Apple silicon and Intel Macs.
+
+## Requirements
+
+- macOS.
+- Alfred 5 with the Powerpack, for the workflow parts. The command-line binary needs
+  nothing beyond macOS.
+- Rust and, for a universal binary, the second Apple target, if you build from source.
+
+## Install
+
+1. Build the binary.
+
+   ```sh
+   cargo build --release
+   rustup target add x86_64-apple-darwin
+   cargo build --release --target x86_64-apple-darwin
+   lipo -create -output alfred-calc \
+     target/release/alfred-calc \
+     target/x86_64-apple-darwin/release/alfred-calc
+   ```
+
+   Skip the last three commands if you only use one architecture.
+
+2. In Alfred, open Workflows and add a new blank workflow. Put `alfred-calc` inside
+   the folder Alfred created for it.
+
+3. Add a Script Filter to the workflow with these settings.
+
+   | Setting | Value |
+   | --- | --- |
+   | Keyword | `calc` |
+   | Language | `/bin/bash` |
+   | With input as | `argv` |
+   | Script | `./alfred-calc "$1"` |
+
+   The script path is relative because Alfred runs scripts from the workflow folder.
+   Alfred does not provide a variable holding that folder, so an absolute path or a
+   variable would break.
+
+4. Optional: add a Fallback trigger to the same Script Filter. Alfred shows fallback
+   results only when its own results are empty, so queries then work with no keyword
+   at all. Enable the fallback under Alfred's Features, Default Results, Fallbacks.
 
 ## Usage
 
 ```sh
-alfred-calc "100 eur to usd"
-alfred-calc "2 btc to usd"
-alfred-calc "5 km in m"
-alfred-calc "2 tb to gb"
-alfred-calc "100€ to $"
-alfred-calc "5 km"          # lists conversions to every other length unit
+alfred-calc "100 eur to usd"    # 112.0092 USD      Euro (EUR) → United States dollar (USD)
+alfred-calc "2 btc to usd"      # 161,358 USD        Bitcoin (BTC) → United States dollar (USD)
+alfred-calc "5 km in m"         # 5,000 m            kilometer (km) → meter (m)
+alfred-calc "2 tb to gb"        # 2,000 GB           terabyte (TB) → gigabyte (GB)
+alfred-calc "100 c to f"        # 212 °F             celsius (°C) → fahrenheit (°F)
+alfred-calc "100 eur"           # converts to USD and ILS, your configured pair
 ```
 
-Output is Alfred script-filter JSON on stdout, so the workflow object is simply:
+Money results depend on the day's rates; the figures above were taken on 24 October
+2026. Unit results are exact.
 
-```
-./alfred-calc "{query}"
-```
+Accepted forms:
 
-Natural language accepted: `to`, `in`, `as`, `->`, `=>` as connectors, or two tokens
-(`100eur usd`). Currency symbols (`$`, `€`, `£`, `¥`, `₪`, `₹`, `₽`) are rewritten to ISO
-codes before parsing. Unit names accept singular, plural, British spelling and common
-abbreviations (`kilometres`, `lbs`, `US gallons`, `miles per hour`).
+- A connector between source and target: `to`, `in`, `as`, `->`, `=>`.
+- Two tokens with no connector: `100eur usd`.
+- Currency symbols, rewritten before parsing: `100€ to $`.
+- Unit names in singular or plural, British spelling, and common abbreviations:
+  `kilometres`, `lbs`, `US gallons`, `miles per hour`.
 
-## Data
+Leave out the target and the program lists conversions to every other unit in the
+same category, or to your configured currencies for money.
 
-| What | Source | Cache |
+## Configuration
+
+| Variable | Default | Effect |
 | --- | --- | --- |
-| Fiat rates (units per USD, ~166 currencies) | `open.er-api.com` | 12 hours |
-| Crypto prices (top 250 by market cap, USD) | CoinGecko free markets endpoint | 15 minutes |
+| `CALC_BASE_CURRENCIES` | `USD,ILS` | Comma-separated targets shown when a currency query names no target. |
+| `alfred_workflow_cache` | set by Alfred | Where fetched rates and prices are cached. Without it the program uses `~/Library/Caches/alfred-calc`. |
 
-No API keys. Cache lives in `$alfred_workflow_cache` when Alfred sets it, otherwise
-`~/Library/Caches/alfred-calc`.
+## Coverage
 
-Failure policy: unknown tokens, cross-category conversions, and unavailable market data
-all produce an invalid result row that says what went wrong. A failed refresh falls back
-to the cached file only if one exists, and the row is annotated with the data's age —
-stale numbers are labelled, never passed off as fresh.
+- 108 unit definitions in 12 categories: length, area, volume, weight, speed,
+  rotation, temperature, pressure, time, energy, power, and data storage. Decimal and
+  binary storage units are separate, so `gb` and `gib` differ by the expected amount.
+- About 166 currencies. Rates come from `open.er-api.com` as units per US dollar and
+  are cached for 12 hours. 160 currencies have local names for matching.
+- 46 crypto assets resolved by symbol or name. Prices come from CoinGecko's free
+  market list, which covers the top 250 assets by market cap, and are cached for 15
+  minutes.
 
-Environment variables:
+Nothing in the program needs an API key.
 
-- `CALC_BASE_CURRENCIES` — comma-separated targets shown when no target is typed
-  (default `USD,ILS,EUR,GBP`).
-- `alfred_workflow_cache` — set by Alfred; overrides the cache directory.
+When a refresh fails, the program keeps serving the cached file but labels its age in
+the result row. With no cache and no network it returns a failure row instead of a
+number.
 
-## Build and test
+## Development
 
 ```sh
-cargo test
-cargo build --release   # target/release/alfred-calc
+cargo test                  # 25 tests
+cargo clippy --all-targets  # expected: no findings
+cargo fmt --check
 ```
 
-## Layout
+`docs/what-it-is.md` explains how a query is parsed, why the conversion maths is
+built the way it is, which alternatives were rejected, and what is out of scope.
 
-- `src/parse.rs` — amount + source + target, connector handling, longest-prefix split.
-- `src/units.rs` — 12 categories, affine factors (temperature is just another affine
-  unit), decimal versus binary storage units kept distinct.
-- `src/currency.rs`, `src/currency_data.rs` — 160 ISO names for offline resolution;
-  rates fetched as units-per-USD.
-- `src/crypto.rs` — offline symbol table, online prices.
-- `src/num.rs` — number parsing and display formatting.
-- `src/fetch.rs` — cached HTTP with explicit staleness reporting.
-- `src/alfred.rs` — script-filter JSON.
+## Licence
+
+MIT. See `LICENSE`.
