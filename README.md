@@ -17,38 +17,35 @@ Apple silicon and Intel Macs.
 
 ## Install
 
-1. Build the binary.
+Install the packaged workflow:
 
-   ```sh
-   cargo build --release
-   rustup target add x86_64-apple-darwin
-   cargo build --release --target x86_64-apple-darwin
-   lipo -create -output alfred-calc \
-     target/release/alfred-calc \
-     target/x86_64-apple-darwin/release/alfred-calc
-   ```
+1. Download `alfred-calc.alfredworkflow` from the latest release.
+2. Double-click the file and confirm the import when Alfred asks.
+3. Optional: enable prefix-free queries by ticking the Calc fallback under Alfred's
+   Features, Default Results, Fallbacks. Without it, type `calc` before a query.
 
-   Skip the last three commands if you only use one architecture.
+The package holds the universal binary and the workflow definition, so nothing else is
+needed.
 
-2. In Alfred, open Workflows and add a new blank workflow. Put `alfred-calc` inside
-   the folder Alfred created for it.
+To build the package yourself:
 
-3. Add a Script Filter to the workflow with these settings.
+```sh
+rustup target add x86_64-apple-darwin   # Intel slice, optional
+./tools/build-workflow.sh               # writes alfred-calc.alfredworkflow
+```
 
-   | Setting | Value |
-   | --- | --- |
-   | Keyword | `calc` |
-   | Language | `/bin/bash` |
-   | With input as | `argv` |
-   | Script | `./alfred-calc "$1"` |
+The script builds both architectures, links them into one binary, and zips that binary
+with `alfred/info.plist`.
 
-   The script path is relative because Alfred runs scripts from the workflow folder.
-   Alfred does not provide a variable holding that folder, so an absolute path or a
-   variable would break.
+### Wiring it by hand
 
-4. Optional: add a Fallback trigger to the same Script Filter. Alfred shows fallback
-   results only when its own results are empty, so queries then work with no keyword
-   at all. Enable the fallback under Alfred's Features, Default Results, Fallbacks.
+If you would rather build the Alfred objects yourself, create a blank workflow, put
+the binary in its folder, and add a Script Filter with keyword `calc`, language
+`/bin/bash`, input mode `argv`, and the script `./alfred-calc "$1"`.
+
+The path must stay relative. Alfred runs scripts from the workflow folder but does not
+expose that folder in a variable, so `$alfred_workflow_directory` expands to nothing
+and the script exits 127 with no visible result.
 
 ## Usage
 
@@ -105,7 +102,12 @@ number.
 cargo test                  # 25 tests
 cargo clippy --all-targets  # expected: no findings
 cargo fmt --check
+./tools/build-workflow.sh   # rebuilds the .alfredworkflow package
 ```
+
+`alfred/info.plist` is the workflow definition and the source of truth for the
+installed workflow. Edit it there rather than in Alfred's preferences folder, then
+rebuild the package.
 
 `docs/what-it-is.md` explains how a query is parsed, why the conversion maths is
 built the way it is, which alternatives were rejected, and what is out of scope.

@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bundleid</key>
+	<string>com.taasaa.alfred.calc</string>
+	<key>connections</key>
+	<dict>
+		<key>307FC9EB-3529-46B5-AB41-CE27F1D101CD</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>52D070A2-DC5F-4C9E-9284-6DF5AD25196A</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+	</dict>
+	<key>createdby</key>
+	<string>Tasa</string>
+	<key>description</key>
+	<string>Natural-language currency, crypto and unit conversion</string>
+	<key>disabled</key>
+	<false/>
+	<key>name</key>
+	<string>Calc</string>
+	<key>objects</key>
+	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>text</key>
+				<string>Calculate '{query}'</string>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.trigger.fallback</string>
+			<key>uid</key>
+			<string>307FC9EB-3529-46B5-AB41-CE27F1D101CD</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>alfredfiltersresults</key>
+				<false/>
+				<key>alfredfiltersresultsmatchmode</key>
+				<integer>0</integer>
+				<key>argumenttreatemptyqueryasnil</key>
+				<true/>
+				<key>argumenttrimmode</key>
+				<integer>0</integer>
+				<key>argumenttype</key>
+				<integer>0</integer>
+				<key>escaping</key>
+				<integer>102</integer>
+				<key>keyword</key>
+				<string>calc</string>
+				<key>queuedelaycustom</key>
+				<integer>3</integer>
+				<key>queuedelayimmediatelyinitially</key>
+				<true/>
+				<key>queuedelaymode</key>
+				<integer>0</integer>
+				<key>queuemode</key>
+				<integer>1</integer>
+				<key>runningsubtext</key>
+				<string></string>
+				<key>script</key>
+				<string>./alfred-calc "$1"</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>subtext</key>
+				<string>Currency, crypto and unit conversion</string>
+				<key>title</key>
+				<string>Calculate</string>
+				<key>type</key>
+				<integer>0</integer>
+				<key>withspace</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.scriptfilter</string>
+			<key>uid</key>
+			<string>52D070A2-DC5F-4C9E-9284-6DF5AD25196A</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
+	</array>
+	<key>readme</key>
+	<string>Natural language conversion, prefix-free via Fallback.
+
+Examples:
+100 eur to usd
+2 btc to usd
+5 km in m
+2 tb to gb
+100 eur  (converts to USD and ILS)
+
+Rates: open.er-api.com, cached 12h. Crypto: CoinGecko, cached 15m.
+Default target currencies: CALC_BASE_CURRENCIES (default USD,ILS).</string>
+	<key>uidata</key>
+	<dict>
+		<key>307FC9EB-3529-46B5-AB41-CE27F1D101CD</key>
+		<dict>
+			<key>xpos</key>
+			<integer>60</integer>
+			<key>ypos</key>
+			<integer>140</integer>
+		</dict>
+		<key>52D070A2-DC5F-4C9E-9284-6DF5AD25196A</key>
+		<dict>
+			<key>xpos</key>
+			<integer>320</integer>
+			<key>ypos</key>
+			<integer>140</integer>
+		</dict>
+	</dict>
+	<key>version</key>
+	<string>0.1.0</string>
+	<key>webaddress</key>
+	<string>https://github.com/taasaa/alfred-calc</string>
+</dict>
+</plist>

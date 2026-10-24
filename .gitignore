@@ -1,3 +1,4 @@
 /target
 /alfred-calc
+*.alfredworkflow
 .DS_Store
